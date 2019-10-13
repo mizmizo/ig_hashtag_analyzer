@@ -1,0 +1,1 @@
+$prog = [String]::Join("", (GEt-Content query_test.js))
