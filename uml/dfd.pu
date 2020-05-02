@@ -1,0 +1,47 @@
+@startuml dfd
+digraph sample {
+        graph [fontname = "monospace", fontsize = 10, rankdir = LR];
+        node  [fontname = "monospace", fontsize = 10];
+        edge  [fontname = "monospace", fontsize = 10];
+
+        // legend
+        subgraph cluster_legend {
+                label = "凡例";
+                source    [shape = box,    label = "入力/出力"];
+                function  [shape = circle, label = "プロセス"];
+                data_base [shape = folder, label = "データストア"];
+                source   -> function  [label = "フロー"];
+                function -> data_base [label = "フロー"];
+        }
+
+        // node
+        user       [shape = box,    label = "ユーザ"];
+        key        [shape = folder, label = "Key設定"];
+        instagram  [shape = box,    label = "Instagram"];
+        post_get   [shape = circle, label = "投稿取得"];
+        sort       [shape = circle, label = "タグ一覧の統合"];
+        select     [shape = circle, label = "調査対象タグ選択"];
+        info_get   [shape = circle, label = "タグ情報取得"];
+        info_intg  [shape = circle, label = "タグ情報統合"];
+        view       [shape = box,    label = "アプリ表示"];
+        
+        // edge
+        key       -> post_get  [label = "アクセスキー"];
+        post_get  -> instagram [label = "クエリ"];
+        instagram -> post_get  [label = "[画像, タグ一覧]"];
+        post_get  -> sort      [label = "[[タグ一覧]]"];
+        sort      -> select    [label = "[ダブり無タグ一覧]"];
+        select    -> info_get  [label = "[選択済タグ一覧]"];
+        user      -> select    [label = "[タグ, (select|ignore)]"];
+        info_get  -> instagram [label = "クエリ"];
+        instagram -> info_get  [label = "タグ情報一覧"];
+        info_get  -> info_intg [label = "[タグ, (new|popular|none)]"];
+        info_intg -> view      [label = "[タグ, (new|popular|none|ignore)]"];
+        post_get  -> view      [label = "[画像, タグ一覧]"];
+
+        // rank
+        {rank = min;  key; post_get; };
+        {rank = same; user; select; instagram; };
+        {rank = max; info_intg; view; };
+}
+@enduml
