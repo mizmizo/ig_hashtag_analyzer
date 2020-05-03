@@ -36,12 +36,12 @@ digraph sample {
         info_get  -> instagram [label = "クエリ"];
         instagram -> info_get  [label = "タグ情報一覧"];
         info_get  -> info_intg [label = "[タグ, (new|popular|none)]"];
-        info_intg -> view      [label = "[タグ, (new|popular|none|ignore)]"];
+        info_intg -> view      [label = "[タグ, (new|popular|none|fail|ignore)]"];
         post_get  -> view      [label = "[画像, タグ一覧]"];
 
         // rank
         {rank = min;  key; post_get; };
         {rank = same; user; select; instagram; };
-        {rank = max; info_intg; view; };
+        {rank = same; info_get; info_intg; };
 }
 @enduml

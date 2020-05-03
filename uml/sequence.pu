@@ -1,0 +1,57 @@
+@startuml sequence
+actor User as user order 10
+boundary Browser as view order 20
+participant main order 30
+participant renderer as render order 40
+Actor Instagram as ig order 50
+
+/'TOP'/
+main -> view ++ : load top.html
+view ->> render ** : load js
+view --> main -- : done
+user -> view ++ : go
+view ->> render ++ : get-posts
+deactivate view
+render ->> main ++ : get-posts
+deactivate render
+destroy render
+main -> ig ++ : query for post-info
+return post-info
+main -> main : clear duplications
+
+/' Select '/
+main -> view ++ : load select.html
+deactivate main
+view ->> render ** : load js
+activate render
+render -> main ++ : request tag-list
+return tag-info
+render --> view : tag-list
+deactivate render
+view --> user : show tag-list
+view --> main -- : done
+deactivate view
+user -> view ++ : selected tags
+view ->> render ++ : get-tag-info(selected tags)
+deactivate view
+render ->> main ++ : get-tag-info(selected tags)
+deactivate render
+destroy render
+main -> ig ++ : query for tag-info
+return tag-info
+main -> main : integrate tag-info
+
+/' Show result '/
+main -> view ++ : load result.html
+deactivate main
+view ->> render ** : load js
+activate render
+render -> main ++ : request result
+return result
+render --> view : result
+deactivate render
+view --> user : show result
+view --> main -- : done
+deactivate view
+
+@enduml
