@@ -1,6 +1,5 @@
 'use strict';
 
 function apply() {
-    window.ipcRenderer.invoke('requestPostData', 'req').then((res) => {
-    });
+    window.ipcRenderer.invoke('requestPostData', 'req');
 }

@@ -11,6 +11,7 @@ const analyzer = new TagAnalyzer();
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
+let mainWindow;
 const Menu = electron.Menu;
 const {crashReporter, dialog} = require('electron');
 const ipcMain = electron.ipcMain;
@@ -31,23 +32,27 @@ app.on('window-all-closed', function() {
 
 app.on('ready', function() {
     Menu.setApplicationMenu(menu);
-    openWindow(process.cwd());
+    openWindow('index');
 });
 
-function openWindow () {
-    let mainWindow = new BrowserWindow({
+function openWindow (page) {
+    mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
     });
-    mainWindow.loadURL('file://' + __dirname + '/index.html');
+    reloadURL(page);
 
     mainWindow.on('closed', function() {
         mainWindow = null;
     });
 };
+
+function reloadURL (page) {
+    mainWindow.loadURL('file://' + __dirname + '/' + page + '.html');
+}
 
 // メニュー情報の作成
 const template = [
@@ -95,7 +100,17 @@ const menu = Menu.buildFromTemplate(template);
 
 ipcMain.handle('requestPostData', () => {
     analyzer.requestPostData().then(() => {
-        log.info('post : ' + analyzer.post_data['username']);
-        return 'done';
+        reloadURL('select');
+    });
+});
+
+ipcMain.handle('getTagList', () => {
+    let list = analyzer.getAllTagList();
+    return list;
+});
+
+ipcMain.handle('analyse', (event, tags) => {
+    analyzer.analyse(tags).then(() => {
+        reloadURL('result');
     });
 });
