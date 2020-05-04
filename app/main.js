@@ -1,12 +1,19 @@
-var path = require('path');
-var log = require('electron-log');
-//log.transports.file.level = 'info';
-//log.transports.file.file = 'log.log';
+'use strict';
+
+const path = require('path');
+const log = require('electron-log');
+log.transports.file.level = 'info';
+// log.transports.file.file = 'log.log';
+
+const TagAnalyzer = require('./lib/tag_analyzer');
+const analyzer = new TagAnalyzer();
+
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 const Menu = electron.Menu;
 const {crashReporter, dialog} = require('electron');
+const ipcMain = electron.ipcMain;
 app.allowRendererProcessReuse = true;
 
 crashReporter.start({
@@ -83,3 +90,12 @@ const template = [
 ];
 
 const menu = Menu.buildFromTemplate(template);
+
+// IPC通信のCB
+
+ipcMain.handle('requestPostData', () => {
+    analyzer.requestPostData().then(() => {
+        log.info('post : ' + analyzer.post_data['username']);
+        return 'done';
+    });
+});

@@ -17,6 +17,7 @@
         "url": "https://github.com/mizmizo/ig_hashtag_analyzer/issues"
     },
     "dependencies": {
-        "electron-log": "^4.1.2"
+        "electron-log": "^4.1.2",
+        "node-fetch": "^2.6.0"
     }
 }
