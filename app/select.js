@@ -8,6 +8,6 @@ window.onload = function (){
 }
 
 function apply() {
-    let selected_tags = ['ぼくときみとの物語', 'ポートレートセクション'];
+    let selected_tags = ['jp_mood', 'ノスタルジーな瞬間を'];
     window.ipcRenderer.invoke('analyse', selected_tags);
 }
