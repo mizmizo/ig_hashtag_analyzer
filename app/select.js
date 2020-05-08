@@ -7,6 +7,8 @@ window.onload = function (){
 }
 
 function apply() {
+    const loader = document.getElementById('loader');
+    loader.classList.add('loading');
     let selected_tags = loadSelectedTags();
     window.ipcRenderer.invoke('analyse', selected_tags);
 }
