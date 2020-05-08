@@ -1,11 +1,6 @@
 'use strict';
 
 const fetch = require('node-fetch');
-// let gallery = new Object();
-
-// window.onload = function(){
-//     gallery = document.getElemeentById("gallery");
-// };
 
 class TagAnalyzer {
     num = 9;   // max 9 object
