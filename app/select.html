@@ -9,6 +9,18 @@
     <script src="select.js" defer="defer"></script>
   </head>
   <body>
-    <input type="button" value="analyse" onclick="apply()">
+    <div class="header">
+      <p class="app-title">IG Hashtag Analyzer</p>
+    </div>
+    <div class="taglist-wrapper" id="taglist">
+      <p>
+        分析するハッシュタグを選んでください。
+        <br>(カッコ内:直近の使用回数)
+      </p>
+    </div>
+    <div class="button-wrapper">
+      <input class="app-button" type="button" value="分析" onclick="apply()">
+      <input class="app-cancel-button" type="button" value="中断" onclick="cancel()">
+    </div>
   </body>
 </html>

@@ -37,8 +37,8 @@ app.on('ready', function() {
 
 function openWindow (page) {
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
+        width: 1180,
+        height: 960,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js')
         }
@@ -113,4 +113,13 @@ ipcMain.handle('analyse', (event, tags) => {
     analyzer.analyse(tags).then(() => {
         reloadURL('result');
     });
+});
+
+ipcMain.handle('getGalleyData', () => {
+    let data = analyzer.getGalleyData();
+    return data;
+});
+
+ipcMain.handle('cancel', () => {
+    reloadURL('index');
 });

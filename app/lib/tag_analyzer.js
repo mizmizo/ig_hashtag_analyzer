@@ -7,15 +7,6 @@ const fetch = require('node-fetch');
 //     gallery = document.getElemeentById("gallery");
 // };
 
-// status enum
-const Stat = {
-    ignore:0,
-    none:1,
-    recent:2,
-    top:3,
-    fail:4
-};
-
 class TagAnalyzer {
     num = 9;   // max 9 object
     igID  = "17841408371705236";
@@ -65,7 +56,7 @@ class TagAnalyzer {
                     tags:tags
                 });
             }
-            console.log(this.post_data);
+            // console.log(this.post_data);
             // <=== get post data ===
 
             // === organize tags ===>
@@ -82,15 +73,15 @@ class TagAnalyzer {
 
     // [tags] + post_data -> *selected_taglist + API-res -> *tag_infolist + selected_taglist + post_data -> *result
     async analyse(selected_tags) {
-        console.log('target : ' + selected_tags);
+        // console.log('target : ' + selected_tags);
         this.__genSelectedTagList(selected_tags);
-        this.__requestTagInfo().then(() => {
-            this.__integrateTagInfo();
-        });
+        await this.__requestTagInfo();
+        this.__integrateTagInfo();
     }
 
     // result -> return innerHTML
     getGalleyData() {
+        return this.result;
     }
 
     // post_data -> all_taglist
@@ -127,7 +118,7 @@ class TagAnalyzer {
                 this.selected_taglist[tag] = postids;
             }
         }
-        console.log(this.selected_taglist);
+        // console.log(this.selected_taglist);
     }
 
     // selected_taglist + API-res -> *tag_infolist
@@ -141,8 +132,8 @@ class TagAnalyzer {
             let json = await res.json();
             const tag_id = json["data"][0]["id"];
             // TODO jsonエラーチェック
-            console.log("json : " + JSON.stringify(json));
-            console.log("tag : " + tag + " id : " + tag_id);
+            // console.log("json : " + JSON.stringify(json));
+            // console.log("tag : " + tag + " id : " + tag_id);
 
             // 最新投稿と人気投稿一覧を取得
             gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.igID
@@ -151,14 +142,14 @@ class TagAnalyzer {
             json = await res.json();
             const top_media = json["data"];
             // TODO jsonエラーチェック
-            console.log(top_media[0]["caption"]);
+            // console.log(top_media[0]["caption"]);
             gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.igID
             + "&fields=" + "id,caption" + "&access_token=" + this.token;
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
             // TODO jsonエラーチェック
             const recent_media = json["data"];
-            console.log(recent_media[0]["caption"]);
+            // console.log(recent_media[0]["caption"]);
 
             // tag_infolistへpush
             let top_ids = [];
@@ -175,7 +166,7 @@ class TagAnalyzer {
                 recent_id:recent_ids
             };
         }
-        console.log(this.tag_infolist)
+        // console.log(this.tag_infolist)
     }
 
     // tag_infolist + selected_taglist + post_data -> *result
@@ -185,24 +176,24 @@ class TagAnalyzer {
             // 各ハッシュタグのステータスを登録
             let tag_status = [];
             for(const tag of post['tags']){
-                let status;
+                let status = "";
                 if(this.tag_infolist[tag]){
                     if(this.tag_infolist[tag]['status'] === 0){
                         // Request failure
-                        status = Stat.fail;
+                        status = 'fail';
                     } else {
                         // Request sucess -> 検索(top優先)
                         if(this.tag_infolist[tag]['top_id'].includes(post['id'])){
-                            status = Stat.top;
+                            status = 'top';
                         } else if(this.tag_infolist[tag]['recent_id'].includes(post['id'])){
-                            status = Stat.new;
+                            status = 'new';
                         } else {
-                            status = Stat.none;
+                            status = 'none';
                         }
                     }
                 } else {
                     // 未select -> ignore
-                    status = Stat.ignore;
+                    status = 'ignore';
                 }
                 tag_status.push({
                     tag:tag,
@@ -218,67 +209,10 @@ class TagAnalyzer {
                 tags:tag_status
             });
         }
-        for(const res of this.result){
-            console.log(res);
-        }
+        // for(const res of this.result){
+        //     console.log(res);
+        // }
     }
 }
-
-// function apply(){
-//     const num   = 9;   // max 9 object
-//     const XHR   = new XMLHttpRequest();
-//     const fAPI  = "https://graph.facebook.com/v4.0/";   // Ver.4.0
-//     const query = "name,username,profile_picture_url,media_count,followers_count,follows_count,media.limit(" + num + "){caption,like_count,media_url,permalink,timestamp,thumbnail_url}";
-//     const gURL   = fAPI + igID + "?fields=" + query + "&access_token=" + token;
-//     let instagram_data = new Object();
-//     if(XHR){
-// 	XHR.open("GET", gURL, true);
-//         //XHR.responseType = 'json';
-//         XHR.timeout = 2000;
-// 	XHR.send(null);
-//         XHR.onreadystatechange = function(){
-// 	    if(XHR.readyState === 4){
-//                 if(XHR.status === 200){
-// 	            // console.log(XHR.responseText);
-// 	            instagram_data = JSON.parse(XHR.responseText);
-//                     console.log(instagram_data);
-//                     show_gallery(instagram_data);
-//                 } else {
-//                     // todo
-//                     console.log(XHR.status);
-//                 }
-//             }
-//         };
-//     }
-//     return instagram_data;
-// };
-
-// function show_gallery(instagram_data){
-//     const gallery_data = instagram_data["media"]["data"];
-//     let photos = "";
-//     const photo_length = 9;
-//     for(let i = 0; i < photo_length ;i++){
-//         photos += gen_galleryitem(gallery_data[i]);
-//     }
-//     gallery.innerHTML = photos;
-// };
-
-// function gen_galleryitem(gallery_data){
-//     const hashtags = gallery_data.caption.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm);
-//     console.log(hashtags);
-//     const hashtags_str = hashtags.join("</li><li>");
-
-//     const item_html =
-//           '<li class="gallery-item">' +
-//           '<a href="' +
-//           gallery_data.permalink +
-//           '" target="_blank"><div class="square-img"><img src="' +
-//           gallery_data.media_url + '"/></div></a>' +
-//           '<p><ul><li>' +
-//           hashtags_str +
-//           '</li></ul></p>' +
-//           '</li>';
-//     return item_html;
-// };
 
 module.exports = TagAnalyzer;
