@@ -9,8 +9,8 @@ const fetch = require('node-fetch');
 
 class TagAnalyzer {
     num = 9;   // max 9 object
-    igID  = "17841408371705236";
-    token = "EAAFsQOxDEXUBAKQrPJ3VZCut6GLyRV1jx0ZAHN2hQpJFQYw8CUhBL4Y41zMZAkxjZCPJnHasL5HegmpcRQnaEF5ySbvnZAbl69VDMSb1BTzcoHwIR02lIsj3xWtZAo8Q9yvNYFwjZCr77m0oZAPBd07hHAJwV7yKGEe4ZAnVTu8gWwgZDZD";
+    igID;
+    token;
     fAPI = "https://graph.facebook.com/v7.0/";   // Ver.7.0
     post_data; // [(post-id, permalink, like_count, timestamp, media_url, [tags])]
     all_taglist; // {tag : count}
@@ -18,7 +18,9 @@ class TagAnalyzer {
     tag_infolist; // {tag : {status, [top_id], [recent_id]}} : status = 1(success), 0(fail)
     result;  // [(id, permalink, like_count, timestamp, media_url, [tag, status])]
 
-    constructor(){
+    constructor(token){
+        this.igID = token.igID;
+        this.token = token.token;
         this.selected_taglist = {};
         //todo : get igID&token from setting file.
     }

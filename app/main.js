@@ -3,10 +3,11 @@
 const path = require('path');
 const log = require('electron-log');
 log.transports.file.level = 'info';
-// log.transports.file.file = 'log.log';
+log.transports.file.file = './log.log';
 
+const token = require('./token.json');
 const TagAnalyzer = require('./lib/tag_analyzer');
-const analyzer = new TagAnalyzer();
+const analyzer = new TagAnalyzer(token);
 
 const electron = require('electron');
 const app = electron.app;
