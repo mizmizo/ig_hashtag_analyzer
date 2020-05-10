@@ -1,11 +1,8 @@
 {
     "name": "ig_hashtag_analyzer",
     "version": "1.0.0",
-    "description": "",
+    "description": "Instagram hashtag analysing tool",
     "main": "main.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
     "keywords": [],
     "repository": {
         "type": "git",
@@ -19,5 +16,33 @@
     "dependencies": {
         "electron-log": "^4.1.2",
         "node-fetch": "^2.6.0"
+    },
+    "build": {
+        "appId": "com.electron.igha",
+        "directories": {
+            "output": "build"
+        },
+        "mac": {
+            "target": "dmg",
+            "category": "public.app-category.social-networking"
+        },
+        "win": {
+            "target": "nsis"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true
+        },
+        "extraResources": [
+            "token.json"
+        ]
+    },
+    "devDependencies": {
+        "electron": "^8.2.5",
+        "electron-builder": "^22.6.0"
+    },
+    "scripts": {
+        "pack:osx": "electron-builder --mac --x64",
+        "pack:win": "electron-builder --win --x64"
     }
 }

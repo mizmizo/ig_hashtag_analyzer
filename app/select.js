@@ -37,5 +37,7 @@ function loadSelectedTags() {
             selected_tags.push(check.value);
         }
     }
+    // log.info('selected tags : ');
+    // log.info(selected_tags);
     return selected_tags;
 }

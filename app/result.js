@@ -2,6 +2,10 @@
 
 window.onload = function (){
     window.ipcRenderer.invoke('getGalleyData', '').then((res) => {
+        // log.info('status data : ');
+        // for(const item in res){
+        //     log.info(res[item]);
+        // }
         genResult(res);
     });
 }

@@ -3,11 +3,7 @@
 const path = require('path');
 const log = require('electron-log');
 log.transports.file.level = 'info';
-log.transports.file.file = './log.log';
-
-const token = require('./token.json');
-const TagAnalyzer = require('./lib/tag_analyzer');
-const analyzer = new TagAnalyzer(token);
+// log.transports.file.getFile();
 
 const electron = require('electron');
 const app = electron.app;
@@ -17,6 +13,22 @@ const Menu = electron.Menu;
 const {crashReporter, dialog} = require('electron');
 const ipcMain = electron.ipcMain;
 app.allowRendererProcessReuse = true;
+
+const process = require('process');
+const token_path = process.env.NODE_ENV === 'development'
+      ? path.join(__dirname, 'token.json')
+      : path.join(process.resourcesPath, 'token.json');
+log.error(token_path);
+const token = require(token_path);
+const TagAnalyzer = require('./lib/tag_analyzer');
+const analyzer = new TagAnalyzer(token);
+
+process.on('uncaughtException', function(err) {
+  log.error('electron:event:uncaughtException');
+  log.error(err);
+  log.error(err.stack);
+  app.quit();
+});
 
 crashReporter.start({
   productName: 'ig_h_a',
