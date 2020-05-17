@@ -7,7 +7,7 @@ class TagAnalyzer {
     igID;
     token;
     fAPI = "https://graph.facebook.com/v7.0/";   // Ver.7.0
-    post_data; // [(post-id, permalink, like_count, timestamp, media_url, [tags])]
+    post_data; // [{post-id, permalink, like_count, timestamp, media_url, [tags]}]
     all_taglist; // {tag : count}
     selected_taglist; // {tag : [post-id]}
     tag_infolist; // {tag : {status, [top_id], [recent_id]}} : status = 1(success), 0(fail)
@@ -141,7 +141,7 @@ class TagAnalyzer {
             // TODO jsonエラーチェック
             // console.log(top_media[0]["caption"]);
             gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.igID
-            + "&fields=" + "id,caption" + "&access_token=" + this.token;
+            + "&fields=" + "id" + "&access_token=" + this.token;
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
             // TODO jsonエラーチェック
