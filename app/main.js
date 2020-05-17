@@ -3,7 +3,9 @@
 const path = require('path');
 const log = require('electron-log');
 log.transports.file.level = 'info';
-// log.transports.file.getFile();
+log.transports.console.level = false;
+
+log.info('Start app.');
 
 const electron = require('electron');
 const app = electron.app;
@@ -18,13 +20,13 @@ const process = require('process');
 const token_path = process.env.NODE_ENV === 'development'
       ? path.join(__dirname, '../token/token.json')
       : path.join(process.resourcesPath, 'token.json');
-log.error(token_path);
+log.info('Token : ' + token_path);
 const token = require(token_path);
 const TagAnalyzer = require('./lib/tag_analyzer');
-const analyzer = new TagAnalyzer(token);
+const analyzer = new TagAnalyzer(token, log);
 
 process.on('uncaughtException', function(err) {
-  log.error('electron:event:uncaughtException');
+  log.error('Electron:event:uncaughtException');
   log.error(err);
   log.error(err.stack);
   app.quit();
@@ -38,9 +40,8 @@ crashReporter.start({
 });
 
 app.on('window-all-closed', function() {
-  if (process.platform !== 'darwin') {
+    log.info('Quit App by window-all-closed.');
     app.quit();
-  }
 });
 
 app.on('ready', function() {
@@ -49,6 +50,7 @@ app.on('ready', function() {
 });
 
 function openWindow (page) {
+    log.info('OpenWindow : ' + page);
     mainWindow = new BrowserWindow({
         width: 1180,
         height: 960,
@@ -64,6 +66,7 @@ function openWindow (page) {
 };
 
 function reloadURL (page) {
+    log.info('reloadURL : ' + page);
     mainWindow.loadURL('file://' + __dirname + '/' + page + '.html');
 }
 
@@ -75,6 +78,7 @@ const template = [
             {label: 'Quit',
              accelerator: 'Command+Q',
              click: function () {
+                 log.info('Quit App by Quit menu.');
                  app.quit();
              }}
         ]
@@ -112,27 +116,32 @@ const menu = Menu.buildFromTemplate(template);
 // IPC通信のCB
 
 ipcMain.handle('requestPostData', () => {
+    log.info('IPC CB : requestPostData');
     analyzer.requestPostData().then(() => {
         reloadURL('select');
     });
 });
 
 ipcMain.handle('getTagList', () => {
+    log.info('IPC CB : getTagList');
     let list = analyzer.getAllTagList();
     return list;
 });
 
 ipcMain.handle('analyse', (event, tags) => {
+    log.info('IPC CB : analyse');
     analyzer.analyse(tags).then(() => {
         reloadURL('result');
     });
 });
 
 ipcMain.handle('getGalleyData', () => {
+    log.info('IPC CB : getGalleyData');
     let data = analyzer.getGalleyData();
     return data;
 });
 
 ipcMain.handle('cancel', () => {
+    log.info('IPC CB : cancel');
     reloadURL('index');
 });
