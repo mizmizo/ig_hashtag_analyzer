@@ -1,3 +1,5 @@
 node_modules/
-token.json
+token/*
+!token/token-base.json
 archive/
+build/

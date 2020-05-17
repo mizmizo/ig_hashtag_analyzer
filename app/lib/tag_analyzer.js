@@ -134,7 +134,7 @@ class TagAnalyzer {
 
             // 最新投稿と人気投稿一覧を取得
             gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.igID
-            + "&fields=" + "id,caption" + "&access_token=" + this.token;
+            + "&fields=" + "id" + "&access_token=" + this.token;
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
             const top_media = json["data"];
