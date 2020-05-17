@@ -2,19 +2,17 @@
 
 window.onload = function (){
     window.ipcRenderer.invoke('getGalleyData', '').then((res) => {
-        // log.info('status data : ');
-        // for(const item in res){
-        //     log.info(res[item]);
-        // }
         genResult(res);
     });
 }
 
 function cancel() {
+    window.log.info('call result.cancel()');
     window.ipcRenderer.invoke('cancel', '');
 }
 
 function genResult(res) {
+    window.log.info('call result.genResult()');
     let result = document.getElementById('result');
     for(const item of res){
         let item_html = "";

@@ -12,28 +12,36 @@ class TagAnalyzer {
     selected_taglist; // {tag : [post-id]}
     tag_infolist; // {tag : {status, [top_id], [recent_id]}} : status = 1(success), 0(fail)
     result;  // [(id, permalink, like_count, timestamp, media_url, [tag, status])]
+    log; // Electron-log
 
-    constructor(token){
+    constructor(token, log){
+        this.log = log;
         this.igID = token.igID;
         this.token = token.token;
         this.selected_taglist = {};
+        this.log.info('Initialize Analyzer : ');
+        this.log.info('igID  : ' + this.igID);
+        this.log.info('Token : ' + this.token);
         //todo : get igID&token from setting file.
     }
 
     // API -> post_data, all_taglist
     async requestPostData() {
+        this.log.info('requestPostData');
         // === generate API query ===>
         let query =
               "username," // Account data
               + "media.limit(" + this.num + ")" // the number of media to analyse
               + "{caption,id,like_count,media_url,permalink,timestamp}"; // post data
         let gURL   = this.fAPI + this.igID + "?fields=" + query + "&access_token=" + this.token;
+        this.log.info('gURL : ' + gURL);
         // <=== generate API query ===
 
         try {
             // === get post data ===>
             const res = await fetch(gURL, {method: 'GET'});
             const json = await res.json();
+            this.log.info('res : ' + JSON.stringify(json));
             const media_data = json["media"]["data"];
             this.post_data = [];
             for(const item of media_data) {
@@ -52,25 +60,27 @@ class TagAnalyzer {
                     media_url:item.media_url,
                     tags:tags
                 });
+                this.log.info('extracted tags : ' + tags);
             }
-            // console.log(this.post_data);
             // <=== get post data ===
 
             // === organize tags ===>
             this.__organizeTagList();
         } catch (err) {
-            console.log('error : ' + err);
-            //TODO : error handling
+            this.log.error('error : ' + err);
+            throw err;
         }
     }
 
     getAllTagList() {
+        this.log.info('getAllTaglist');
         return this.all_taglist;
     }
 
     // [tags] + post_data -> *selected_taglist + API-res -> *tag_infolist + selected_taglist + post_data -> *result
     async analyse(selected_tags) {
-        // console.log('target : ' + selected_tags);
+        this.log.info('analyse');
+        this.log.info('target : ' + selected_tags);
         this.__genSelectedTagList(selected_tags);
         await this.__requestTagInfo();
         this.__integrateTagInfo();
@@ -78,6 +88,7 @@ class TagAnalyzer {
 
     // result -> return innerHTML
     getGalleyData() {
+        this.log.info('getGalleyData');
         return this.result;
     }
 
@@ -103,6 +114,7 @@ class TagAnalyzer {
         for(const tag of selected_tags){
             if(!this.all_taglist[tag]){
                 // error
+                this.log.error('tag : ' + tag + 'is not exist!');
                 throw 'tag : ' + tag + 'is not exist!';
             } else {
                 // 選択されたタグを含む投稿IDを抽出
@@ -115,7 +127,7 @@ class TagAnalyzer {
                 this.selected_taglist[tag] = postids;
             }
         }
-        // console.log(this.selected_taglist);
+        this.log.info('selected tag list : ' + JSON.stringify(this.selected_taglist));
     }
 
     // selected_taglist + API-res -> *tag_infolist
@@ -125,8 +137,10 @@ class TagAnalyzer {
             // ハッシュタグIDを取得
             let gURL = this.fAPI + "ig_hashtag_search?user_id="
                 + this.igID + "&q=" + tag + "&access_token=" + this.token;
+            this.log.info('gURL : ' + gURL);
             let res = await fetch(encodeURI(gURL), {method: 'GET'}); // 日本語タグに対応するためエンコード
             let json = await res.json();
+            this.log.info('res : ' + JSON.stringify(json));
             const tag_id = json["data"][0]["id"];
             // TODO jsonエラーチェック
             // console.log("json : " + JSON.stringify(json));
@@ -135,15 +149,20 @@ class TagAnalyzer {
             // 最新投稿と人気投稿一覧を取得
             gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.igID
             + "&fields=" + "id" + "&access_token=" + this.token;
+            this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
+            this.log.info('res : ' + JSON.stringify(json));
             const top_media = json["data"];
             // TODO jsonエラーチェック
             // console.log(top_media[0]["caption"]);
+
             gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.igID
             + "&fields=" + "id" + "&access_token=" + this.token;
+            this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
+            this.log.info('res : ' + JSON.stringify(json));
             // TODO jsonエラーチェック
             const recent_media = json["data"];
             // console.log(recent_media[0]["caption"]);
@@ -163,7 +182,7 @@ class TagAnalyzer {
                 recent_id:recent_ids
             };
         }
-        // console.log(this.tag_infolist)
+        // this.log.info(this.tag_infolist)
     }
 
     // tag_infolist + selected_taglist + post_data -> *result
@@ -206,9 +225,10 @@ class TagAnalyzer {
                 tags:tag_status
             });
         }
-        // for(const res of this.result){
-        //     console.log(res);
-        // }
+        this.log.info('result : ');
+        for(const res of this.result){
+            this.log.info(res);
+        }
     }
 }
 

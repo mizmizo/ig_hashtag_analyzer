@@ -7,6 +7,7 @@ window.onload = function (){
 }
 
 function apply() {
+    window.log.info('call select.apply()');
     const loader = document.getElementById('loader');
     loader.classList.add('loading');
     let selected_tags = loadSelectedTags();
@@ -14,10 +15,12 @@ function apply() {
 }
 
 function cancel() {
+    window.log.info('call select.cancel()');
     window.ipcRenderer.invoke('cancel', '');
 }
 
 function genTagList(res) {
+    window.log.info('call select.genTagList()');
     let taglist = document.getElementById('taglist');
     let checkbox_html = "";
     for(const tag in res){
@@ -30,6 +33,7 @@ function genTagList(res) {
 }
 
 function loadSelectedTags() {
+    window.log.info('call select.loadSelectedtags()');
     const checkbox = document.getElementsByName("tagselect");
     let selected_tags = [];
     for(const check of checkbox){
@@ -37,7 +41,7 @@ function loadSelectedTags() {
             selected_tags.push(check.value);
         }
     }
-    // log.info('selected tags : ');
-    // log.info(selected_tags);
+    window.log.info('selected tags : ');
+    window.log.info(selected_tags);
     return selected_tags;
 }
