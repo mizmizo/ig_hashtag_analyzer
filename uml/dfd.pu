@@ -28,16 +28,16 @@ digraph sample {
         // edge
         key       -> post_get  [label = "アクセスキー"];
         post_get  -> instagram [label = "クエリ"];
-        instagram -> post_get  [label = "[画像, タグ一覧]"];
+        instagram -> post_get  [label = "[投稿情報]"];
         post_get  -> sort      [label = "[[タグ一覧]]"];
-        sort      -> select    [label = "[ダブり無タグ一覧]"];
+        sort      -> select    [label = "{ダブり無タグ一覧 : 使用回数}"];
         select    -> info_get  [label = "[選択済タグ一覧]"];
-        user      -> select    [label = "[タグ, (select|ignore)]"];
+        user      -> select    [label = "{タグ : [投稿id]}"];
         info_get  -> instagram [label = "クエリ"];
         instagram -> info_get  [label = "タグ情報一覧"];
-        info_get  -> info_intg [label = "[タグ, (new|popular|none)]"];
-        info_intg -> view      [label = "[タグ, (new|popular|none|fail|ignore)]"];
-        post_get  -> view      [label = "[画像, タグ一覧]"];
+        info_get  -> info_intg [label = "{タグ:[top投稿,new投稿]}"];
+        post_get  -> info_intg [label = "[投稿情報]"];
+        info_intg -> view      [label = "[投稿, {タグ:ステータス}"];
 
         // rank
         {rank = min;  key; post_get; };
