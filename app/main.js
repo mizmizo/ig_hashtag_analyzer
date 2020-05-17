@@ -16,7 +16,7 @@ app.allowRendererProcessReuse = true;
 
 const process = require('process');
 const token_path = process.env.NODE_ENV === 'development'
-      ? path.join(__dirname, 'token.json')
+      ? path.join(__dirname, '../token/token.json')
       : path.join(process.resourcesPath, 'token.json');
 log.error(token_path);
 const token = require(token_path);
