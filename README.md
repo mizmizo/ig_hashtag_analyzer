@@ -61,7 +61,7 @@ token.json内の```YOUR-USER-ID```をインスタグラムビジネスアカウ�
 
 が```Applies to all objects```になっている必要があります。
 
-### development
+### Environment variables
 
 開発中は環境変数NODE_ENVを設定してください。token.jsonのパスのスイッチに使用されます。
 ```
@@ -83,3 +83,13 @@ $ electron.ps1 . (for cmd : electron.cmd .)
 **Sequence**
 
 ![](uml/sequence.png)
+
+
+### Development
+
+**Error**
+
+lib/以下のモジュールで例外が発生した場合はすべてAppErrorをthrowします。
+AppError([err_handler.js](./app/lib/err_handler.js))は組み込み型Errorの派生クラスで、
+codeプロパティ(Instagram Graph APIのエラーコード格納用)とsustainableプロパティ(アプリの強制終了が必要か)を持ちます。
+main.js内でcatchされた例外はユーザに表示され、分析の中断またはアプリの終了が行われます。
