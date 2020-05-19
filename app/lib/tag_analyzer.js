@@ -1,6 +1,7 @@
 'use strict';
 
 const fetch = require('node-fetch');
+const {AppError, checkAPIRes} = require('./err_handler');
 
 class TagAnalyzer {
     num = 9;   // max 9 object
@@ -42,6 +43,7 @@ class TagAnalyzer {
             const res = await fetch(gURL, {method: 'GET'});
             const json = await res.json();
             this.log.info('res : ' + JSON.stringify(json));
+            checkAPIRes(json); // throw if json contains error
             const media_data = json["media"]["data"];
             this.post_data = [];
             for(const item of media_data) {
@@ -67,13 +69,19 @@ class TagAnalyzer {
             // === organize tags ===>
             this.__organizeTagList();
         } catch (err) {
-            this.log.error('error : ' + err);
-            throw err;
+            if(err instanceof AppError){
+                throw err;
+            } else {
+                throw new AppError(false, 0, err.message); // treat Built-in Error as a critical error
+            }
         }
     }
 
     getAllTagList() {
         this.log.info('getAllTaglist');
+        if(!this.all_taglist){
+            throw new AppError(false, 1, 'all_taglist is empty.'); // App control-sequence failure => critical error
+        }
         return this.all_taglist;
     }
 
@@ -81,14 +89,25 @@ class TagAnalyzer {
     async analyse(selected_tags) {
         this.log.info('analyse');
         this.log.info('target : ' + selected_tags);
-        this.__genSelectedTagList(selected_tags);
-        await this.__requestTagInfo();
-        this.__integrateTagInfo();
+        try{
+            this.__genSelectedTagList(selected_tags);
+            await this.__requestTagInfo();
+            this.__integrateTagInfo();
+        } catch (err) {
+            if(err instanceof AppError){
+                throw err;
+            } else {
+                throw new AppError(false, 0, err.message); // treat Built-in Error as a critical error
+            }
+        }
     }
 
     // result -> return innerHTML
     getGalleyData() {
         this.log.info('getGalleyData');
+        if(!this.result){
+            throw new AppError(false, 1, 'result is empty.'); // critical error
+        }
         return this.result;
     }
 
@@ -115,7 +134,8 @@ class TagAnalyzer {
             if(!this.all_taglist[tag]){
                 // error
                 this.log.error('tag : ' + tag + 'is not exist!');
-                throw 'tag : ' + tag + 'is not exist!';
+                // App control-sequence failure => critical error
+                throw new AppError(false, 1, 'tag : ' + tag + 'is not exist!');
             } else {
                 // 選択されたタグを含む投稿IDを抽出
                 let postids = [];
@@ -141,31 +161,27 @@ class TagAnalyzer {
             let res = await fetch(encodeURI(gURL), {method: 'GET'}); // 日本語タグに対応するためエンコード
             let json = await res.json();
             this.log.info('res : ' + JSON.stringify(json));
+            checkAPIRes(json); // throw if json contains error
             const tag_id = json["data"][0]["id"];
-            // TODO jsonエラーチェック
-            // console.log("json : " + JSON.stringify(json));
-            // console.log("tag : " + tag + " id : " + tag_id);
 
             // 最新投稿と人気投稿一覧を取得
             gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.igID
-            + "&fields=" + "id" + "&access_token=" + this.token;
+                + "&fields=" + "id" + "&access_token=" + this.token;
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
             this.log.info('res : ' + JSON.stringify(json));
+            checkAPIRes(json); // throw if json contains error
             const top_media = json["data"];
-            // TODO jsonエラーチェック
-            // console.log(top_media[0]["caption"]);
 
             gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.igID
-            + "&fields=" + "id" + "&access_token=" + this.token;
+                + "&fields=" + "id" + "&access_token=" + this.token;
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
             this.log.info('res : ' + JSON.stringify(json));
-            // TODO jsonエラーチェック
+            checkAPIRes(json); // throw if json contains error
             const recent_media = json["data"];
-            // console.log(recent_media[0]["caption"]);
 
             // tag_infolistへpush
             let top_ids = [];
@@ -182,7 +198,6 @@ class TagAnalyzer {
                 recent_id:recent_ids
             };
         }
-        // this.log.info(this.tag_infolist)
     }
 
     // tag_infolist + selected_taglist + post_data -> *result

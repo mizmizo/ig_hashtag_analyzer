@@ -32,10 +32,11 @@ process.on('uncaughtException', function(err) {
   app.quit();
 });
 
+// TODO : set valid-setting
 crashReporter.start({
   productName: 'ig_h_a',
   companyName: '',
-  submitURL: 'url": "https://github.com/mizmizo/ig_hashtag_analyzer/issues', // TODO
+  submitURL: 'url": "https://github.com/mizmizo/ig_hashtag_analyzer/issues',
   autoSubmit: true
 });
 
@@ -113,32 +114,79 @@ const template = [
 
 const menu = Menu.buildFromTemplate(template);
 
+// Error handling
+
+function logAndShowErr(err) {
+    log.error(err);
+    dialog.showErrorBox(err.name + ' : ' +  err.code, err.message);
+}
+
 // IPC通信のCB
 
 ipcMain.handle('requestPostData', () => {
     log.info('IPC CB : requestPostData');
-    analyzer.requestPostData().then(() => {
-        reloadURL('select');
-    });
+    analyzer.requestPostData()
+        .then(() => {
+            reloadURL('select');
+        })
+        .catch((err) => {
+            logAndShowErr(err);
+            if(!err.sustainable){
+                log.info('Quit App by Error.');
+                app.quit();
+            } else {
+                reloadURL('index');
+            }
+        });
 });
 
 ipcMain.handle('getTagList', () => {
     log.info('IPC CB : getTagList');
-    let list = analyzer.getAllTagList();
-    return list;
+    try{
+        let list = analyzer.getAllTagList();
+        return list;
+    } catch (err) {
+        logAndShowErr(err);
+        if(!err.sustainable){
+            log.info('Quit App by Error.');
+            app.quit();
+        } else {
+            reloadURL('index');
+        }
+    }
 });
 
 ipcMain.handle('analyse', (event, tags) => {
     log.info('IPC CB : analyse');
-    analyzer.analyse(tags).then(() => {
-        reloadURL('result');
-    });
+    analyzer.analyse(tags)
+        .then(() => {
+            reloadURL('result');
+        })
+        .catch((err) => {
+            logAndShowErr(err);
+            if(!err.sustainable){
+                log.info('Quit App by Error.');
+                app.quit();
+            } else {
+                reloadURL('index');
+            }
+        });
 });
 
 ipcMain.handle('getGalleyData', () => {
     log.info('IPC CB : getGalleyData');
-    let data = analyzer.getGalleyData();
-    return data;
+    try {
+        let data = analyzer.getGalleyData();
+        return data;
+    } catch (err) {
+        logAndShowErr(err);
+        if(!err.sustainable){
+            log.info('Quit App by Error.');
+            app.quit();
+        } else {
+            reloadURL('index');
+        }
+    }
 });
 
 ipcMain.handle('cancel', () => {
