@@ -33,7 +33,7 @@ class TagAnalyzer {
         let query =
               "username," // Account data
               + "media.limit(" + this.num + ")" // the number of media to analyse
-              + "{caption,id,like_count,media_url,permalink,timestamp}"; // post data
+              + "{caption,comments,comments_count,id,like_count,media_url,permalink,timestamp}"; // post data
         let gURL   = this.fAPI + this.igID + "?fields=" + query + "&access_token=" + this.token;
         this.log.info('gURL : ' + gURL);
         // <=== generate API query ===
@@ -48,7 +48,14 @@ class TagAnalyzer {
             this.post_data = [];
             for(const item of media_data) {
                 // 各投稿のハッシュタグ一覧を抽出
-                const hashtags = item.caption.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm);
+                // キャプションから抽出
+                let hashtags = item.caption.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm);
+                // コメントから抽出
+                if(item.comments_count){
+                    for(const comment of item.comments.data){
+                        hashtags.concat(comment.text.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm));
+                    }
+                }
                 let tags = [];
                 for(const tag of hashtags) {
                     tags.push(tag.slice(1)); // #を除去してリストに追加
