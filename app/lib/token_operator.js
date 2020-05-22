@@ -38,7 +38,7 @@ class AccessInfo {
 // ac.igID
 // - is Instagram business acount ID
 // If not, throw AppError
-function validateAccessInfo(ac, log){
+async function validateAccessInfo(ac, log){
     if(log){
         log.info('validateAccessInfo');
     }

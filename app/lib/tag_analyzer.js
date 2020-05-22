@@ -30,7 +30,7 @@ class TagAnalyzer {
         this.log.info('requestPostData');
         try {
             // === validate Token ===>
-            validateAccessInfo(this.ac, this.log);
+            await validateAccessInfo(this.ac, this.log);
             // <=== validate Token ===
 
             // === generate API query ===>

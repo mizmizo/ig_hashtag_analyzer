@@ -1,12 +1,12 @@
 'use strict';
 
-const path = require('path');
+// Setup debug log
 const log = require('electron-log');
 log.transports.file.level = 'info';
 log.transports.console.level = false;
-
 log.info('Start app.');
 
+// Setup Electron
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
@@ -16,14 +16,20 @@ const {crashReporter, dialog} = require('electron');
 const ipcMain = electron.ipcMain;
 app.allowRendererProcessReuse = true;
 
+// load Graph API access token
+const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./lib/token_operator');
 const process = require('process');
+const path = require('path');
 const token_path = process.env.NODE_ENV === 'development'
       ? path.join(__dirname, '../token/token.json')
       : path.join(process.resourcesPath, 'token.json');
 log.info('Token : ' + token_path);
 const token = require(token_path);
+const ac = new AccessInfo(token.igID, token.token);
+
+// load analyzer logic-class
 const TagAnalyzer = require('./lib/tag_analyzer');
-const analyzer = new TagAnalyzer(token, log);
+const analyzer = new TagAnalyzer(ac, log);
 
 process.on('uncaughtException', function(err) {
   log.error('Electron:event:uncaughtException');
@@ -114,8 +120,7 @@ const template = [
 
 const menu = Menu.buildFromTemplate(template);
 
-// Error handling
-
+// AppError handling
 function logAndShowErr(err) {
     log.error(err);
     dialog.showErrorBox(err.name + ' : ' +  err.code, err.message);
