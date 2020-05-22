@@ -2,11 +2,11 @@
 
 const fetch = require('node-fetch');
 const {AppError, checkAPIRes} = require('./err_handler');
+const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./token_operator');
 
 class TagAnalyzer {
     num = 9;   // max 9 object
-    igID;
-    token;
+    ac; // AccessInfo;
     fAPI = "https://graph.facebook.com/v7.0/";   // Ver.7.0
     post_data; // [{post-id, permalink, like_count, timestamp, media_url, [tags]}]
     all_taglist; // {tag : count}
@@ -15,30 +15,33 @@ class TagAnalyzer {
     result;  // [(id, permalink, like_count, timestamp, media_url, [tag, status])]
     log; // Electron-log
 
-    constructor(token, log){
+    constructor(ac, log){
         this.log = log;
-        this.igID = token.igID;
-        this.token = token.token;
+        this.ac = ac;
         this.selected_taglist = {};
         this.log.info('Initialize Analyzer : ');
-        this.log.info('igID  : ' + this.igID);
-        this.log.info('Token : ' + this.token);
+        this.log.info('igID  : ' + this.ac.igID);
+        this.log.info('Token : ' + this.ac.token);
         //todo : get igID&token from setting file.
     }
 
     // API -> post_data, all_taglist
     async requestPostData() {
         this.log.info('requestPostData');
-        // === generate API query ===>
-        let query =
-              "username," // Account data
-              + "media.limit(" + this.num + ")" // the number of media to analyse
-              + "{caption,comments,comments_count,id,like_count,media_url,permalink,timestamp}"; // post data
-        let gURL   = this.fAPI + this.igID + "?fields=" + query + "&access_token=" + this.token;
-        this.log.info('gURL : ' + gURL);
-        // <=== generate API query ===
-
         try {
+            // === validate Token ===>
+            validateAccessInfo(this.ac, this.log);
+            // <=== validate Token ===
+
+            // === generate API query ===>
+            let query =
+                "username," // Account data
+                + "media.limit(" + this.num + ")" // the number of media to analyse
+                + "{caption,comments,comments_count,id,like_count,media_url,permalink,timestamp}"; // post data
+            let gURL   = this.fAPI + this.ac.igID + "?fields=" + query + "&access_token=" + this.ac.token;
+            this.log.info('gURL : ' + gURL);
+            // <=== generate API query ===
+
             // === get post data ===>
             const res = await fetch(gURL, {method: 'GET'});
             const json = await res.json();
@@ -163,7 +166,7 @@ class TagAnalyzer {
         for(const tag in this.selected_taglist){
             // ハッシュタグIDを取得
             let gURL = this.fAPI + "ig_hashtag_search?user_id="
-                + this.igID + "&q=" + tag + "&access_token=" + this.token;
+                + this.ac.igID + "&q=" + tag + "&access_token=" + this.ac.token;
             this.log.info('gURL : ' + gURL);
             let res = await fetch(encodeURI(gURL), {method: 'GET'}); // 日本語タグに対応するためエンコード
             let json = await res.json();
@@ -172,8 +175,8 @@ class TagAnalyzer {
             const tag_id = json["data"][0]["id"];
 
             // 最新投稿と人気投稿一覧を取得
-            gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.igID
-                + "&fields=" + "id" + "&access_token=" + this.token;
+            gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.ac.igID
+                + "&fields=" + "id" + "&access_token=" + this.ac.token;
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
@@ -181,8 +184,8 @@ class TagAnalyzer {
             checkAPIRes(json); // throw if json contains error
             const top_media = json["data"];
 
-            gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.igID
-                + "&fields=" + "id" + "&access_token=" + this.token;
+            gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.ac.igID
+                + "&fields=" + "id" + "&access_token=" + this.ac.token;
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
