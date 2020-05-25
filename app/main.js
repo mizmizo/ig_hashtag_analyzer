@@ -18,6 +18,7 @@ app.allowRendererProcessReuse = true;
 
 // load Graph API access token
 const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./lib/token_operator');
+
 const process = require('process');
 const path = require('path');
 const token_path = process.env.NODE_ENV === 'development'
@@ -29,7 +30,7 @@ const ac = new AccessInfo(token.igID, token.token);
 
 // load analyzer logic-class
 const TagAnalyzer = require('./lib/tag_analyzer');
-const analyzer = new TagAnalyzer(ac, log);
+let analyzer;
 
 process.on('uncaughtException', function(err) {
   log.error('Electron:event:uncaughtException');
@@ -130,6 +131,7 @@ function logAndShowErr(err) {
 
 ipcMain.handle('requestPostData', () => {
     log.info('IPC CB : requestPostData');
+    analyzer = new TagAnalyzer(ac, log);
     analyzer.requestPostData()
         .then(() => {
             reloadURL('select');

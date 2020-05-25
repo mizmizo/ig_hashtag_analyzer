@@ -2,7 +2,6 @@
 
 const fetch = require('node-fetch');
 const {AppError, checkAPIRes} = require('./err_handler');
-const {dialog} = require('electron');
 
 const fAPI = "https://graph.facebook.com/v7.0/";   // Ver.7.0
 
@@ -31,7 +30,7 @@ class AccessInfo {
     }
 }
 
-// Check if
+// Check that
 // ac.token
 // - is valid
 // - is permanent
@@ -86,6 +85,9 @@ async function validateAccessInfo(ac, log){
     }
 }
 
+// Generate Permanent Accesstoken and igID
+// from 1st(temporary)-token, app-id, app-secret, fb-pagename.
+// return: AccessInfo
 async function generatePermanentToken(first_token, app_id, app_secret, pagename, log){
     log.info('generatePermanentToken');
 
