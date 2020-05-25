@@ -52,11 +52,14 @@ class TagAnalyzer {
             for(const item of media_data) {
                 // 各投稿のハッシュタグ一覧を抽出
                 // キャプションから抽出
-                let hashtags = item.caption.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm);
+                const hashtags = [];
+                Array.prototype.push.apply(hashtags,
+                                           item.caption.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm));
                 // コメントから抽出
                 if(item.comments_count){
                     for(const comment of item.comments.data){
-                        hashtags.concat(comment.text.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm));
+                        Array.prototype.push.apply(hashtags,
+                                                   comment.text.match(/[#＃][Ａ-Ｚａ-ｚA-Za-z一-鿆0-9０-９ぁ-ヶｦ-ﾟー._-]+/gm));
                     }
                 }
                 let tags = [];
