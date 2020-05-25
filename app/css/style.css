@@ -44,6 +44,12 @@ body {
     margin-top: 1em;
 }
 
+.button-howto-wrapper{
+  position: relative;
+  top:500px;
+  text-align:center;
+}
+
 .app-button {
   position: relative;
   display: inline-block;
@@ -81,6 +87,23 @@ body {
   background: #979797;
   color: #e1f3ff;
 }
+.app-howto-cancel-button{
+  background: #979797;
+  color: #e1f3ff;
+  position: relative;
+  display: inline-block;
+  font-weight: bold;
+  padding: 0.5em 1em;
+  text-decoration: none;
+  border-left: solid 4px #979797;
+  border-right: solid 4px #979797;
+  color: #e1f3ff;
+  background: #979797;
+  transition: .1s;
+  width: 150px;
+  height: 50px;
+  margin:auto;
+  }
 
 .loader {
   width: 100vw;
