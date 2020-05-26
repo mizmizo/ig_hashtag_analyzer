@@ -200,3 +200,13 @@ ipcMain.handle('cancel', () => {
     log.info('IPC CB : cancel');
     reloadURL('index');
 });
+
+ipcMain.handle('toHowto', () => {
+    log.info('IPC CB : toHowto');
+    reloadURL("howto")
+});
+
+ipcMain.handle('toExplain', () => {
+    log.info('IPC CB : toExplain');
+    reloadURL("explain")
+});
