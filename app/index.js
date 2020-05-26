@@ -6,3 +6,8 @@ function apply() {
     loader.classList.add('loading');
     window.ipcRenderer.invoke('requestPostData', 'req');
 }
+
+function click_howto() {
+    window.log.info('call index.click_howto()');
+    window.ipcRenderer.invoke('toHowto', '');
+}
