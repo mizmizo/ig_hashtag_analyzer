@@ -18,15 +18,25 @@ app.allowRendererProcessReuse = true;
 
 // load Graph API access token
 const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./lib/token_operator');
+const AppSetting = require('./lib/default_setting');
+let setting;
 
 const process = require('process');
 const path = require('path');
-const token_path = process.env.NODE_ENV === 'development'
-      ? path.join(__dirname, '../token/token.json')
-      : path.join(process.resourcesPath, 'token.json');
-log.info('Token : ' + token_path);
-const token = require(token_path);
-const ac = new AccessInfo(token.igID, token.token);
+const setting_path = process.env.NODE_ENV === 'development'
+      ? path.join(__dirname, '../token/appsetting.json')
+      : path.join(process.resourcesPath, 'appsetting.json');
+log.info('Setting : ' + setting_path);
+try{
+    const setting_json = require(setting_path);
+    setting = new AppSetting(setting_json.post_num, setting_json.top_thre,
+                             setting_json.igID, setting_json.token);
+    log.info('Load setting from appsetting.json : ' + JSON.stringify(setting));
+} catch(err) {
+    log.error(err);
+    setting = new AppSetting();
+    log.info('Load default setting : ' + JSON.stringify(setting));
+}
 
 // load analyzer logic-class
 const TagAnalyzer = require('./lib/tag_analyzer');
@@ -127,11 +137,10 @@ function logAndShowErr(err) {
     dialog.showErrorBox(err.name + ' : ' +  err.code, err.message);
 }
 
-// IPC通信のCB
-
+// 分析処理CB
 ipcMain.handle('requestPostData', () => {
     log.info('IPC CB : requestPostData');
-    analyzer = new TagAnalyzer(ac, log);
+    analyzer = new TagAnalyzer(setting, log);
     analyzer.requestPostData()
         .then(() => {
             reloadURL('select');
@@ -196,6 +205,7 @@ ipcMain.handle('getGalleyData', () => {
     }
 });
 
+// 画面遷移CB
 ipcMain.handle('cancel', () => {
     log.info('IPC CB : cancel');
     reloadURL('index');
@@ -209,4 +219,31 @@ ipcMain.handle('toHowto', () => {
 ipcMain.handle('toExplain', () => {
     log.info('IPC CB : toExplain');
     reloadURL("explain")
+});
+
+// 分析設定CB
+ipcMain.handle('getCurrentSetting', () => {
+    log.info('IPC CB : getCurrentSetting');
+    return setting;
+});
+
+// params = {first_token:, app_id:, app_secret:, pagename:}
+ipcMain.handle('generatePermanentToken', (event, params) => {
+    log.info('IPC CB : generatePermanentToken');
+    // TODO : 永続トークンの取得,チェック
+    return true; // 成功⇒true, 失敗⇒false
+});
+
+// params = {igID:, token:}
+ipcMain.handle('registerAccessInfo', (event, params) => {
+    log.info('IPC CB : registerAccessInfo');
+    // TODO : 永続トークンの登録、チェック
+    return true; // 成功⇒true, 失敗⇒false
+});
+
+// params = {post_num:, top_thre:}
+ipcMain.handle('registerSetting', (event, params) => {
+    log.info('IPC CB : registerSetting');
+    // TODO :
+    reloadURL('index');
 });

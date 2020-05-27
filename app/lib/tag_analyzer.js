@@ -5,8 +5,7 @@ const {AppError, checkAPIRes} = require('./err_handler');
 const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./token_operator');
 
 class TagAnalyzer {
-    num = 9;   // max 9 object
-    ac; // AccessInfo;
+    setting; // AppSetting;
     fAPI = "https://graph.facebook.com/v7.0/";   // Ver.7.0
     post_data; // [{post-id, permalink, like_count, timestamp, media_url, [tags]}]
     all_taglist; // {tag : count}
@@ -15,13 +14,13 @@ class TagAnalyzer {
     result;  // [(id, permalink, like_count, timestamp, media_url, [tag, status])]
     log; // Electron-log
 
-    constructor(ac, log){
+    constructor(setting, log){
         this.log = log;
-        this.ac = ac;
+        this.setting = setting;
         this.selected_taglist = {};
         this.log.info('Initialize Analyzer : ');
-        this.log.info('igID  : ' + this.ac.igID);
-        this.log.info('Token : ' + this.ac.token);
+        this.log.info('igID  : ' + this.setting.ac.igID);
+        this.log.info('Token : ' + this.setting.ac.token);
         //todo : get igID&token from setting file.
     }
 
@@ -30,15 +29,18 @@ class TagAnalyzer {
         this.log.info('requestPostData');
         try {
             // === validate Token ===>
-            await validateAccessInfo(this.ac, this.log);
+            if(!this.setting.is_valid){
+                await validateAccessInfo(this.setting.ac, this.log);
+                this.setting.is_valid = true;
+            }
             // <=== validate Token ===
 
             // === generate API query ===>
             let query =
                 "username," // Account data
-                + "media.limit(" + this.num + ")" // the number of media to analyse
+                + "media.limit(" + this.setting.post_num + ")" // the number of media to analyse
                 + "{caption,comments,comments_count,id,like_count,media_url,permalink,timestamp}"; // post data
-            let gURL   = this.fAPI + this.ac.igID + "?fields=" + query + "&access_token=" + this.ac.token;
+            let gURL   = this.fAPI + this.setting.ac.igID + "?fields=" + query + "&access_token=" + this.setting.ac.token;
             this.log.info('gURL : ' + gURL);
             // <=== generate API query ===
 
@@ -169,7 +171,7 @@ class TagAnalyzer {
         for(const tag in this.selected_taglist){
             // ハッシュタグIDを取得
             let gURL = this.fAPI + "ig_hashtag_search?user_id="
-                + this.ac.igID + "&q=" + tag + "&access_token=" + this.ac.token;
+                + this.setting.ac.igID + "&q=" + tag + "&access_token=" + this.setting.ac.token;
             this.log.info('gURL : ' + gURL);
             let res = await fetch(encodeURI(gURL), {method: 'GET'}); // 日本語タグに対応するためエンコード
             let json = await res.json();
@@ -178,8 +180,8 @@ class TagAnalyzer {
             const tag_id = json["data"][0]["id"];
 
             // 最新投稿と人気投稿一覧を取得
-            gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.ac.igID
-                + "&fields=" + "id" + "&access_token=" + this.ac.token;
+            gURL = this.fAPI + tag_id + "/top_media?user_id=" +this.setting.ac.igID
+                + "&fields=id&limit=" + this.setting.top_thre + "&access_token=" + this.setting.ac.token;
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
@@ -187,8 +189,8 @@ class TagAnalyzer {
             checkAPIRes(json); // throw if json contains error
             const top_media = json["data"];
 
-            gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.ac.igID
-                + "&fields=" + "id" + "&access_token=" + this.ac.token;
+            gURL = this.fAPI + tag_id + "/recent_media?user_id=" +this.setting.ac.igID
+                + "&fields=id&limit=" + this.setting.top_thre + "&access_token=" + this.setting.ac.token;
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
