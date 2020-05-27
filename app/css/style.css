@@ -396,3 +396,45 @@ body {
 ul {
     list-style-type: none;
 }
+
+/* explain page */
+.explain-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    padding-top: 100px;
+}
+.explain-title{
+  margin-bottom: 50px;
+}
+.explain-con1{
+  width:250px;
+  height:200px;
+  display: inline-block;
+}
+.explain-con2{
+  width:250px;
+  height:120px;
+  display: inline-block;
+}
+.explain-con-input{
+  display: block;
+  margin-top: 20px;
+  width:250px;
+}
+.explain-con-input-number{
+  display: block;
+  margin-top: 20px;
+}
+
+.explain-con-text{
+  text-align: center;
+}
+.explain-other{
+  display: inline-block;
+}
+
+.app-explain-button {
+  margin: 20px  0;
+}
