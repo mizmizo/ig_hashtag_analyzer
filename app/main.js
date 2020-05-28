@@ -18,9 +18,8 @@ app.allowRendererProcessReuse = true;
 
 // load Graph API access token
 const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./lib/token_operator');
-const AppSetting = require('./lib/default_setting');
+const AppSetting = require('./lib/setting_operator');
 let setting;
-
 const process = require('process');
 const path = require('path');
 const setting_path = process.env.NODE_ENV === 'development'
@@ -227,23 +226,64 @@ ipcMain.handle('getCurrentSetting', () => {
     return setting;
 });
 
-// params = {first_token:, app_id:, app_secret:, pagename:}
+// params = {first_token:, app_id:, app_secret:, pagename:} <- str
 ipcMain.handle('generatePermanentToken', (event, params) => {
     log.info('IPC CB : generatePermanentToken');
-    // TODO : 永続トークンの取得,チェック
-    return true; // 成功⇒true, 失敗⇒false
+    // 永続トークンの生成・チェック⇒OKなら登録
+    generatePermanentToken(params.first_token, params.app_id,
+                           params.app_secret, params.pagename, log)
+        .then((ac) => {
+            setting.ac = ac;
+            setting.is_valid = true;
+            return true; // 成功⇒true, 失敗⇒false
+        })
+        .catch((err) => {
+            logAndShowErr(err);
+            return false; // 成功⇒true, 失敗⇒false
+        });
 });
 
-// params = {igID:, token:}
+// params = {igID:, token:} <- str
 ipcMain.handle('registerAccessInfo', (event, params) => {
     log.info('IPC CB : registerAccessInfo');
-    // TODO : 永続トークンの登録、チェック
-    return true; // 成功⇒true, 失敗⇒false
+    // 永続トークンのチェック⇒OKなら登録
+    const ac = new AccessInfo(params.igID, params.token)
+    validateAccessInfo(ac, log)
+        .then(() => {
+            setting.ac = ac;
+            setting.is_valid = true;
+            return true; // 成功⇒true, 失敗⇒false
+        })
+        .catch((err) => {
+            logAndShowErr(err);
+            return false; // 成功⇒true, 失敗⇒false
+        });
 });
 
-// params = {post_num:, top_thre:}
+// params = {post_num:, top_thre:} <- str
 ipcMain.handle('registerSetting', (event, params) => {
     log.info('IPC CB : registerSetting');
-    // TODO :
+    log.info('params : ' + params);
+    // value check : post_num
+    const post_num_num = parseFloat(params.post_num);
+    if(!Number.isInterger(post_num_num) && post_num_num > 0){
+        log.info('Invalid post_num : ' + post_num_num);
+        dialog.showErrorBox("分析パラメータエラー", "分析する投稿数は自然数を指定して下さい。");
+        return false;
+    }
+
+    // value check : top_thre
+    const top_thre_num = parseFloat(params.top_thre)
+    if(!Number.isInterger(top_thre_num) && top_thre_num > 0){
+        log.info('Invalid top_thre : ' + top_thre_num);
+        dialog.showErrorBox("分析パラメータエラー", "人気投稿判定は自然数を指定して下さい。");
+        return false;
+    }
+
+    // register setting
+    setting.post_num = params.post_num;
+    setting.top_thre = params.top_thre;
+
+    // export to json file
     reloadURL('index');
 });

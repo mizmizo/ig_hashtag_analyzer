@@ -14,8 +14,8 @@ class AppSetting{
             this.ac = new AccessInfo(igID, token);
             this.is_valid = false;
         } else {
-            this.post_num = 9;
-            this.top_thre = 25;
+            this.post_num = "9";
+            this.top_thre = "25";
             this.ac = new AccessInfo();
             this.is_valid = false;
         }
