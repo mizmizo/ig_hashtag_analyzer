@@ -18,15 +18,22 @@ app.allowRendererProcessReuse = true;
 
 // load Graph API access token
 const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./lib/token_operator');
-
+const AppSetting = require('./lib/setting_operator');
+let setting = new AppSetting();
 const process = require('process');
 const path = require('path');
-const token_path = process.env.NODE_ENV === 'development'
-      ? path.join(__dirname, '../token/token.json')
-      : path.join(process.resourcesPath, 'token.json');
-log.info('Token : ' + token_path);
-const token = require(token_path);
-const ac = new AccessInfo(token.igID, token.token);
+const setting_path = process.env.NODE_ENV === 'development'
+      ? path.join(__dirname, '../token/appsetting.json')
+      : path.join(process.resourcesPath, 'appsetting.json');
+log.info('Setting : ' + setting_path);
+try{
+    setting.importFile(setting_path);
+} catch(err) {
+    log.error(err);
+    setting = new AppSetting();
+    log.info("load setting failed. load default...");
+}
+log.info('setting : ' + JSON.stringify(setting, null, 1));
 
 // load analyzer logic-class
 const TagAnalyzer = require('./lib/tag_analyzer');
@@ -127,11 +134,10 @@ function logAndShowErr(err) {
     dialog.showErrorBox(err.name + ' : ' +  err.code, err.message);
 }
 
-// IPC通信のCB
-
+// 分析処理CB
 ipcMain.handle('requestPostData', () => {
     log.info('IPC CB : requestPostData');
-    analyzer = new TagAnalyzer(ac, log);
+    analyzer = new TagAnalyzer(setting, log);
     analyzer.requestPostData()
         .then(() => {
             reloadURL('select');
@@ -196,6 +202,7 @@ ipcMain.handle('getGalleyData', () => {
     }
 });
 
+// 画面遷移CB
 ipcMain.handle('cancel', () => {
     log.info('IPC CB : cancel');
     reloadURL('index');
@@ -209,4 +216,81 @@ ipcMain.handle('toHowto', () => {
 ipcMain.handle('toExplain', () => {
     log.info('IPC CB : toExplain');
     reloadURL("explain")
+});
+
+// 分析設定CB
+ipcMain.handle('getCurrentSetting', () => {
+    log.info('IPC CB : getCurrentSetting');
+    return setting;
+});
+
+// params = {first_token:, app_id:, app_secret:, pagename:} <- str
+ipcMain.handle('generatePermanentToken', (event, params) => {
+    log.info('IPC CB : generatePermanentToken');
+    // 永続トークンの生成・チェック⇒OKなら登録
+    generatePermanentToken(params.first_token, params.app_id,
+                           params.app_secret, params.pagename, log)
+        .then((ac) => {
+            setting.ac = ac;
+            setting.is_valid = true;
+            return true; // 成功⇒true, 失敗⇒false
+        })
+        .catch((err) => {
+            logAndShowErr(err);
+            return false; // 成功⇒true, 失敗⇒false
+        });
+});
+
+// params = {igID:, token:} <- str
+ipcMain.handle('registerAccessInfo', (event, params) => {
+    log.info('IPC CB : registerAccessInfo');
+    // 永続トークンのチェック⇒OKなら登録
+    const ac = new AccessInfo(params.igID, params.token)
+    validateAccessInfo(ac, log)
+        .then(() => {
+            setting.ac = ac;
+            setting.is_valid = true;
+            return true; // 成功⇒true, 失敗⇒false
+        })
+        .catch((err) => {
+            logAndShowErr(err);
+            return false; // 成功⇒true, 失敗⇒false
+        });
+});
+
+// params = {post_num:, top_thre:} <- str
+ipcMain.handle('registerSetting', (event, params) => {
+    log.info('IPC CB : registerSetting');
+    log.info('params : ' + params);
+    try{
+        // value check : post_num
+        const post_num_num = parseFloat(params.post_num);
+        if(!Number.isInterger(post_num_num) && post_num_num > 0){
+            log.info('Invalid post_num : ' + post_num_num);
+            dialog.showErrorBox("分析パラメータエラー", "分析する投稿数は自然数を指定して下さい。");
+            return false;
+        }
+
+        // value check : top_thre
+        const top_thre_num = parseFloat(params.top_thre)
+        if(!Number.isInterger(top_thre_num) && top_thre_num > 0){
+            log.info('Invalid top_thre : ' + top_thre_num);
+            dialog.showErrorBox("分析パラメータエラー", "人気投稿判定は自然数を指定して下さい。");
+            return false;
+        }
+
+        // register setting
+        setting.post_num = params.post_num;
+        setting.top_thre = params.top_thre;
+
+        // export to json file
+        setting.exportFile(setting_path);
+        reloadURL('index');
+    } catch(err) {
+        logAndShowErr(err);
+        if(!err.sustainable){
+            log.info('Quit App by Error.');
+            app.quit();
+        }
+    }
 });

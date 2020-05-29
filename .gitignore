@@ -1,5 +1,6 @@
 node_modules/
 token/*
 !token/token-base.json
+!token/appsetting-base.json
 archive/
 build/
