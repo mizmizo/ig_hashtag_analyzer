@@ -47,7 +47,7 @@ class TagAnalyzer {
             // === get post data ===>
             const res = await fetch(gURL, {method: 'GET'});
             const json = await res.json();
-            this.log.info('res : ' + JSON.stringify(json));
+            this.log.info('res : ' + JSON.stringify(json, null, 1));
             checkAPIRes(json); // throw if json contains error
             const media_data = json["media"]["data"];
             this.post_data = [];
@@ -162,7 +162,7 @@ class TagAnalyzer {
                 this.selected_taglist[tag] = postids;
             }
         }
-        this.log.info('selected tag list : ' + JSON.stringify(this.selected_taglist));
+        this.log.info('selected tag list : ' + JSON.stringify(this.selected_taglist, null, 1));
     }
 
     // selected_taglist + API-res -> *tag_infolist
@@ -175,7 +175,7 @@ class TagAnalyzer {
             this.log.info('gURL : ' + gURL);
             let res = await fetch(encodeURI(gURL), {method: 'GET'}); // 日本語タグに対応するためエンコード
             let json = await res.json();
-            this.log.info('res : ' + JSON.stringify(json));
+            this.log.info('res : ' + JSON.stringify(json, null, 1));
             checkAPIRes(json); // throw if json contains error
             const tag_id = json["data"][0]["id"];
 
@@ -185,7 +185,7 @@ class TagAnalyzer {
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
-            this.log.info('res : ' + JSON.stringify(json));
+            this.log.info('res : ' + JSON.stringify(json, null, 1));
             checkAPIRes(json); // throw if json contains error
             const top_media = json["data"];
 
@@ -194,7 +194,7 @@ class TagAnalyzer {
             this.log.info('gURL : ' + gURL);
             res = await fetch(gURL, {method: 'GET'});
             json = await res.json();
-            this.log.info('res : ' + JSON.stringify(json));
+            this.log.info('res : ' + JSON.stringify(json, null, 1));
             checkAPIRes(json); // throw if json contains error
             const recent_media = json["data"];
 

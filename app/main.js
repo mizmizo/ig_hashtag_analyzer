@@ -19,7 +19,7 @@ app.allowRendererProcessReuse = true;
 // load Graph API access token
 const {AccessInfo, validateAccessInfo, generatePermanentToken} = require('./lib/token_operator');
 const AppSetting = require('./lib/setting_operator');
-let setting;
+let setting = new AppSetting();
 const process = require('process');
 const path = require('path');
 const setting_path = process.env.NODE_ENV === 'development'
@@ -27,15 +27,13 @@ const setting_path = process.env.NODE_ENV === 'development'
       : path.join(process.resourcesPath, 'appsetting.json');
 log.info('Setting : ' + setting_path);
 try{
-    const setting_json = require(setting_path);
-    setting = new AppSetting(setting_json.post_num, setting_json.top_thre,
-                             setting_json.igID, setting_json.token);
-    log.info('Load setting from appsetting.json : ' + JSON.stringify(setting));
+    setting.importFile(setting_path);
 } catch(err) {
     log.error(err);
     setting = new AppSetting();
-    log.info('Load default setting : ' + JSON.stringify(setting));
+    log.info("load setting failed. load default...");
 }
+log.info('setting : ' + JSON.stringify(setting, null, 1));
 
 // load analyzer logic-class
 const TagAnalyzer = require('./lib/tag_analyzer');
@@ -264,26 +262,35 @@ ipcMain.handle('registerAccessInfo', (event, params) => {
 ipcMain.handle('registerSetting', (event, params) => {
     log.info('IPC CB : registerSetting');
     log.info('params : ' + params);
-    // value check : post_num
-    const post_num_num = parseFloat(params.post_num);
-    if(!Number.isInterger(post_num_num) && post_num_num > 0){
-        log.info('Invalid post_num : ' + post_num_num);
-        dialog.showErrorBox("分析パラメータエラー", "分析する投稿数は自然数を指定して下さい。");
-        return false;
+    try{
+        // value check : post_num
+        const post_num_num = parseFloat(params.post_num);
+        if(!Number.isInterger(post_num_num) && post_num_num > 0){
+            log.info('Invalid post_num : ' + post_num_num);
+            dialog.showErrorBox("分析パラメータエラー", "分析する投稿数は自然数を指定して下さい。");
+            return false;
+        }
+
+        // value check : top_thre
+        const top_thre_num = parseFloat(params.top_thre)
+        if(!Number.isInterger(top_thre_num) && top_thre_num > 0){
+            log.info('Invalid top_thre : ' + top_thre_num);
+            dialog.showErrorBox("分析パラメータエラー", "人気投稿判定は自然数を指定して下さい。");
+            return false;
+        }
+
+        // register setting
+        setting.post_num = params.post_num;
+        setting.top_thre = params.top_thre;
+
+        // export to json file
+        setting.exportFile(setting_path);
+        reloadURL('index');
+    } catch(err) {
+        logAndShowErr(err);
+        if(!err.sustainable){
+            log.info('Quit App by Error.');
+            app.quit();
+        }
     }
-
-    // value check : top_thre
-    const top_thre_num = parseFloat(params.top_thre)
-    if(!Number.isInterger(top_thre_num) && top_thre_num > 0){
-        log.info('Invalid top_thre : ' + top_thre_num);
-        dialog.showErrorBox("分析パラメータエラー", "人気投稿判定は自然数を指定して下さい。");
-        return false;
-    }
-
-    // register setting
-    setting.post_num = params.post_num;
-    setting.top_thre = params.top_thre;
-
-    // export to json file
-    reloadURL('index');
 });
