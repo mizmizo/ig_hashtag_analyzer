@@ -39,7 +39,7 @@ class AppSetting{
                            "token": this.ac.token};
         fs.writeFile(path, JSON.stringify(export_json, null, 1), (err) => {
             if(err){
-                throw new AppError(true, 0, err.message);
+                throw new AppError(true, 0, err);
             }
         });
     }
