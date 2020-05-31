@@ -87,7 +87,7 @@ class TagAnalyzer {
             if(err instanceof AppError){
                 throw err;
             } else {
-                throw new AppError(false, 0, err.message); // treat Built-in Error as a critical error
+                throw new AppError(false, 0, err); // treat Built-in Error as a critical error
             }
         }
     }
@@ -112,7 +112,7 @@ class TagAnalyzer {
             if(err instanceof AppError){
                 throw err;
             } else {
-                throw new AppError(false, 0, err.message); // treat Built-in Error as a critical error
+                throw new AppError(false, 0, err); // treat Built-in Error as a critical error
             }
         }
     }

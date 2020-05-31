@@ -20,13 +20,15 @@ const api_errcode = {
 
 // code : 0 -> Built-in error, 1 -> App-sequence error, other -> API error
 class AppError extends Error {
-    constructor(sustainable, code, ...params) {
-        // Pass remaining arguments (including vendor specific ones) to parent constructor
-        super(...params);
+    constructor(sustainable, code, err) {
+        super(err);
 
         // Maintains proper stack trace for where our error was thrown (only available on V8)
         if (Error.captureStackTrace) {
             Error.captureStackTrace(this, AppError);
+        }
+        if(err instanceof Error){
+            this.stack = err.stack;
         }
 
         this.sustainable = sustainable;
