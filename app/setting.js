@@ -35,8 +35,6 @@ async function apply() {
 
 async function regist() {
     window.log.info('call explain.regist()');
-    const loader = document.getElementById('loader');
-    loader.classList.add('loading');
     var igID_kari=document.form2.igIDform.value;
     var token_kari=document.form2.tokenform.value
     const params={igID:String(igID_kari),token:String(token_kari)}
@@ -55,11 +53,6 @@ async function regist() {
                 + '<input class="explain-con-input" type="text" name="igIDform" value="">';
         }
     });
-    function hideSpinner() {
-    // スピナー停止（非表示）
-         ('.spinner').hide();
-    };
-    hideSpinner();
     alert("登録できました！");
 }
 
