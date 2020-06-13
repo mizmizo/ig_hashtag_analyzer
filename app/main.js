@@ -295,7 +295,7 @@ ipcMain.handle('registerSetting', async (event, params) => {
         setting.top_thre = params.top_thre;
 
         // export to json file
-        setting.exportFile('../token/appsetting.json');
+        setting.exportFile(setting_path);
         reloadURL('index');
     } catch(err) {
         logAndShowErr(err);
