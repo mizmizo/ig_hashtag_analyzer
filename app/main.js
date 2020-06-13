@@ -215,9 +215,9 @@ ipcMain.handle('toHowto', () => {
     reloadURL("howto")
 });
 
-ipcMain.handle('toExplain', () => {
-    log.info('IPC CB : toExplain');
-    reloadURL("explain")
+ipcMain.handle('toSettig', () => {
+    log.info('IPC CB : toSetting');
+    reloadURL("Setting")
 });
 
 // 分析設定CB
