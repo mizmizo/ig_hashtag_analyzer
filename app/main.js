@@ -215,7 +215,7 @@ ipcMain.handle('toHowto', () => {
     reloadURL("howto")
 });
 
-ipcMain.handle('toSettig', () => {
+ipcMain.handle('toSetting', () => {
     log.info('IPC CB : toSetting');
     reloadURL("Setting")
 });
