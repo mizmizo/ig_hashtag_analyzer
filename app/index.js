@@ -12,7 +12,7 @@ function click_howto() {
     window.ipcRenderer.invoke('toHowto', '');
 }
 
-function click_explain() {
-    window.log.info('call index.click_explain()');
-    window.ipcRenderer.invoke('toExplain', '');
+function click_setting() {
+    window.log.info('call index.click_setting()');
+    window.ipcRenderer.invoke('toSetting', '');
 }
