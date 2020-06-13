@@ -6,6 +6,7 @@ log.transports.file.level = 'info';
 log.transports.console.level = false;
 log.info('Start app.');
 
+
 // Setup Electron
 const electron = require('electron');
 const app = electron.app;
@@ -22,6 +23,7 @@ const AppSetting = require('./lib/setting_operator');
 let setting = new AppSetting();
 const process = require('process');
 const path = require('path');
+log.info(process.env.NODE_ENV)
 const setting_path = process.env.NODE_ENV === 'development'
       ? path.join(__dirname, '../token/appsetting.json')
       : path.join(process.resourcesPath, 'appsetting.json');
@@ -221,59 +223,68 @@ ipcMain.handle('toExplain', () => {
 // 分析設定CB
 ipcMain.handle('getCurrentSetting', () => {
     log.info('IPC CB : getCurrentSetting');
+    log.info(setting)
     return setting;
 });
 
 // params = {first_token:, app_id:, app_secret:, pagename:} <- str
-ipcMain.handle('generatePermanentToken', (event, params) => {
+ipcMain.handle('generatePermanentToken', async (event, params) => {
     log.info('IPC CB : generatePermanentToken');
     // 永続トークンの生成・チェック⇒OKなら登録
-    generatePermanentToken(params.first_token, params.app_id,
+    let result = false;
+    await generatePermanentToken(params.first_token, params.app_id,
                            params.app_secret, params.pagename, log)
-        .then((ac) => {
-            setting.ac = ac;
-            setting.is_valid = true;
-            return true; // 成功⇒true, 失敗⇒false
-        })
-        .catch((err) => {
-            logAndShowErr(err);
-            return false; // 成功⇒true, 失敗⇒false
-        });
-});
+    .then((ac) => {
+        setting.ac = ac;
+        setting.is_valid = true;
+        result = true;
+    })
+    .catch((err) => {
+        logAndShowErr(err);
+        result = false;
+    });
+    return(result)
 
+});
 // params = {igID:, token:} <- str
-ipcMain.handle('registerAccessInfo', (event, params) => {
+ipcMain.handle('registerAccessInfo', async (event, params) => {
     log.info('IPC CB : registerAccessInfo');
     // 永続トークンのチェック⇒OKなら登録
     const ac = new AccessInfo(params.igID, params.token)
-    validateAccessInfo(ac, log)
-        .then(() => {
-            setting.ac = ac;
-            setting.is_valid = true;
-            return true; // 成功⇒true, 失敗⇒false
-        })
-        .catch((err) => {
-            logAndShowErr(err);
-            return false; // 成功⇒true, 失敗⇒false
-        });
-});
+    let result = false;
+    await validateAccessInfo(ac, log)
+    .then(() => {
+        setting.ac = ac;
+        console.log(setting.ac)
+        setting.is_valid = true;
+        log.info('return true');
+        result = true;
+    })
+    .catch((err) => {
+        log.info('return false');
+        logAndShowErr(err);
+        result = false;
+    });
+    return(result)
 
+});
 // params = {post_num:, top_thre:} <- str
-ipcMain.handle('registerSetting', (event, params) => {
+ipcMain.handle('registerSetting', async (event, params) => {
     log.info('IPC CB : registerSetting');
     log.info('params : ' + params);
     try{
         // value check : post_num
-        const post_num_num = parseFloat(params.post_num);
-        if(!Number.isInterger(post_num_num) && post_num_num > 0){
+        const post_num_num = Number.parseFloat(params.post_num);
+        log.info(typeof(post_num_num))
+        if(!Number.isInteger(post_num_num) && post_num_num > 0){
             log.info('Invalid post_num : ' + post_num_num);
             dialog.showErrorBox("分析パラメータエラー", "分析する投稿数は自然数を指定して下さい。");
             return false;
         }
 
         // value check : top_thre
-        const top_thre_num = parseFloat(params.top_thre)
-        if(!Number.isInterger(top_thre_num) && top_thre_num > 0){
+        const top_thre_num = Number.parseFloat(params.top_thre)
+        if(!Number.isInteger(top_thre_num) && top_thre_num > 0){
             log.info('Invalid top_thre : ' + top_thre_num);
             dialog.showErrorBox("分析パラメータエラー", "人気投稿判定は自然数を指定して下さい。");
             return false;
@@ -284,7 +295,7 @@ ipcMain.handle('registerSetting', (event, params) => {
         setting.top_thre = params.top_thre;
 
         // export to json file
-        setting.exportFile(setting_path);
+        setting.exportFile('../token/appsetting.json');
         reloadURL('index');
     } catch(err) {
         logAndShowErr(err);
