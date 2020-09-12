@@ -15,7 +15,7 @@
     },
     "dependencies": {
         "electron-log": "^4.2.0",
-        "node-fetch": "^2.6.0"
+        "node-fetch": "^2.6.1"
     },
     "build": {
         "appId": "com.electron.igha",
